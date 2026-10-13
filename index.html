@@ -1,0 +1,332 @@
+
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Бағалау және табель жүйесі</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f1f5f9;
+      color: #172033;
+    }
+
+    header {
+      background: #173b70;
+      color: white;
+      padding: 24px;
+      text-align: center;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .card, .panel {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px #0000000d;
+    }
+
+    .number {
+      font-size: 28px;
+      font-weight: bold;
+      color: #2459a9;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+
+    label { display: block; font-size: 14px; }
+
+    input, select, button {
+      width: 100%;
+      padding: 11px;
+      margin-top: 6px;
+      border: 1px solid #cbd5e1;
+      border-radius: 7px;
+      font-size: 15px;
+    }
+
+    button {
+      background: #2459a9;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover { background: #173b70; }
+
+    .secondary { background: #475569; }
+    .delete { background: #b42318; padding: 7px; }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+    }
+
+    th { background: #eaf0f8; }
+
+    .panel { margin-bottom: 20px; }
+    h2 { margin-top: 0; }
+
+    @media print {
+      header { background: white; color: black; }
+      .no-print, form, .delete { display: none !important; }
+      body { background: white; }
+      main { max-width: none; margin: 0; }
+      .card, .panel { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Онлайн бағалау және табель жүйесі</h1>
+    <p>Оқушылардың үлгерімін басқару</p>
+  </header>
+
+  <main>
+    <section class="cards">
+      <div class="card">
+        <p>Оқушылар саны</p>
+        <div class="number" id="studentCount">0</div>
+      </div>
+      <div class="card">
+        <p>Бағалар саны</p>
+        <div class="number" id="gradeCount">0</div>
+      </div>
+      <div class="card">
+        <p>Жалпы орташа балл</p>
+        <div class="number" id="overallAverage">—</div>
+      </div>
+    </section>
+
+    <section class="panel no-print">
+      <h2>Оқушының бағасын енгізу</h2>
+      <form id="gradeForm">
+        <label>
+          Оқушының аты-жөні
+          <input id="student" required
+            placeholder="Мысалы: Айдана Серік">
+        </label>
+
+        <label>
+          Сыныбы
+          <input id="className" required
+            placeholder="Мысалы: 7А">
+        </label>
+
+        <label>
+          Пән
+          <select id="subject">
+            <option>Математика</option>
+            <option>Қазақ тілі</option>
+            <option>Ағылшын тілі</option>
+            <option>Информатика</option>
+            <option>Тарих</option>
+            <option>Физика</option>
+            <option>Биология</option>
+          </select>
+        </label>
+
+        <label>
+          Тоқсан
+          <select id="term">
+            <option>1-тоқсан</option>
+            <option>2-тоқсан</option>
+            <option>3-тоқсан</option>
+            <option>4-тоқсан</option>
+          </select>
+        </label>
+
+        <label>
+          Баға (2–5)
+          <select id="grade">
+            <option value="5">5</option>
+            <option value="4">4</option>
+            <option value="3">3</option>
+            <option value="2">2</option>
+          </select>
+        </label>
+
+        <button type="submit">Бағаны қосу</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Бағалар журналы</h2>
+
+      <div class="no-print">
+        <label>
+          Оқушыны іздеу
+          <input id="search" placeholder="Аты-жөні бойынша..."
+            >
+        </label>
+        <p>
+          <button class="secondary" onclick="window.print()">
+            Табельді басып шығару / PDF
+          </button>
+        </p>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Оқушы</th>
+              <th>Сынып</th>
+              <th>Пән</th>
+              <th>Тоқсан</th>
+              <th>Баға</th>
+              <th>Орташа балл</th>
+              <th class="no-print">Әрекет</th>
+            </tr>
+          </thead>
+          <tbody id="gradeTable"></tbody>
+        </table>
+      </div>
+      <p id="emptyMessage">Әзірге баға енгізілген жоқ.</p>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "gradebook-demo-v1";
+    let records = [];
+
+    try {
+      records = JSON.parse(
+        localStorage.getItem(STORAGE_KEY) || "[]"
+      );
+      if (!Array.isArray(records)) records = [];
+    } catch {
+      records = [];
+    }
+
+    const form = document.getElementById("gradeForm");
+    const table = document.getElementById("gradeTable");
+    const search = document.getElementById("search");
+
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    }
+
+    function average(items) {
+      if (!items.length) return "—";
+      const sum = items.reduce((total, item) =>
+        total + Number(item.grade), 0);
+      return (sum / items.length).toFixed(2);
+    }
+
+    function addCell(row, value) {
+      const cell = document.createElement("td");
+      cell.textContent = value;
+      row.appendChild(cell);
+      return cell;
+    }
+
+    function render() {
+      const query = search.value.trim().toLowerCase();
+      const filtered = records.filter(item =>
+        item.student.toLowerCase().includes(query)
+      );
+
+      table.replaceChildren();
+
+      filtered.forEach(item => {
+        const row = document.createElement("tr");
+        addCell(row, item.student);
+        addCell(row, item.className);
+        addCell(row, item.subject);
+        addCell(row, item.term);
+        addCell(row, item.grade);
+
+        const sameSubject = records.filter(record =>
+          record.student === item.student &&
+          record.subject === item.subject &&
+          record.term === item.term
+        );
+        addCell(row, average(sameSubject));
+
+        const actionCell = addCell(row, "");
+        actionCell.className = "no-print";
+        const button = document.createElement("button");
+        button.className = "delete";
+        button.textContent = "Өшіру";
+        button.addEventListener("click", () => {
+          records = records.filter(record =>
+            record.id !== item.id
+          );
+          save();
+          render();
+        });
+        actionCell.appendChild(button);
+        table.appendChild(row);
+      });
+
+      document.getElementById("studentCount").textContent =
+        new Set(records.map(item =>
+          item.student + "|" + item.className
+        )).size;
+
+      document.getElementById("gradeCount").textContent =
+        records.length;
+
+      document.getElementById("overallAverage").textContent =
+        average(records);
+
+      document.getElementById("emptyMessage").hidden =
+        filtered.length > 0;
+    }
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+
+      records.push({
+        id: Date.now().toString() + Math.random().toString(16).slice(2),
+        student: document.getElementById("student").value.trim(),
+        className: document.getElementById("className").value.trim(),
+        subject: document.getElementById("subject").value,
+        term: document.getElementById("term").value,
+        grade: Number(document.getElementById("grade").value)
+      });
+
+      save();
+      form.reset();
+      render();
+    });
+
+    search.addEventListener("input", render);
+    render();
+  </script>
+</body>
+</html>
